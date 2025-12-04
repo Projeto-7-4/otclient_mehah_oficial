@@ -1,6 +1,6 @@
 # Changelog
 
-## 05-12-2023
+## 05-12-2025
 ### Breaking API Changes
 - `UIWidget` property `qr-code` & `qr-code-border` replaced with `UIQrCode` properties `code` & `code-border`
 - `image-source-base64` replaced with `image-source: base64:/path/to/image`
