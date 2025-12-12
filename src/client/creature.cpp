@@ -569,24 +569,44 @@ void Creature::onDisappear()
     // a pair onDisappear and onAppear events are fired even when creatures walks or turns,
     // so we must filter
     const auto self = static_self_cast<Creature>();
-    m_disappearEvent = g_dispatcher.addEvent([self] {
-        self->m_removed = true;
-        self->stopWalk();
-
-        self->callLuaField("onDisappear");
-
+    
+    // Se a criatura está morta, remover imediatamente para que o corpo apareça mais rápido
+    if (isDead()) {
+        m_removed = true;
+        stopWalk();
+        callLuaField("onDisappear");
+        
         // invalidate this creature position
-        if (!self->isLocalPlayer())
-            self->setPosition(Position());
-
-        self->m_oldPosition = {};
-        self->m_disappearEvent = nullptr;
-
+        if (!isLocalPlayer())
+            setPosition(Position());
+        
+        m_oldPosition = {};
+        m_disappearEvent = nullptr;
+        
         if (g_game.getAttackingCreature() == self)
             g_game.cancelAttack();
         else if (g_game.getFollowingCreature() == self)
             g_game.cancelFollow();
-    });
+    } else {
+        m_disappearEvent = g_dispatcher.addEvent([self] {
+            self->m_removed = true;
+            self->stopWalk();
+
+            self->callLuaField("onDisappear");
+
+            // invalidate this creature position
+            if (!self->isLocalPlayer())
+                self->setPosition(Position());
+
+            self->m_oldPosition = {};
+            self->m_disappearEvent = nullptr;
+
+            if (g_game.getAttackingCreature() == self)
+                g_game.cancelAttack();
+            else if (g_game.getFollowingCreature() == self)
+                g_game.cancelFollow();
+        });
+    }
 
     Thing::onDisappear();
 }
